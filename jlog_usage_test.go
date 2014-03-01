@@ -1,11 +1,13 @@
 package jlog_test
 
 import (
-	"github.com/fastly/jlog"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/fastly/jlog-go"
+	"github.com/twmb/message"
 )
 
 var payload string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -86,11 +88,11 @@ func usageReadCheck(subscriber string, expect int, sizeup bool, t *testing.T) {
 	}
 	start := ctx.RawSize()
 	for {
-		b, e := ctx.Read()
+		b, e := ctx.GetMessage()
 		if cnt > pcnt {
 			log.Printf("cnt > pcnt, just read %v", string(b))
 		}
-		if e != nil {
+		if e != nil && e != message.EOMs {
 			t.Errorf("Unable to read message, error %v", ctx.ErrString())
 			break
 		}

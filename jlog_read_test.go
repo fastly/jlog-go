@@ -1,7 +1,7 @@
 package jlog_test
 
 import (
-	"github.com/fastly/jlog"
+	"github.com/fastly/jlog-go"
 	"log"
 	"testing"
 )
@@ -27,15 +27,15 @@ func TestReading(t *testing.T) {
 
 	readerLaterer, _ := jlog.NewReader(pathname, nil)
 	readerLaterer.Open("readlater")
-	// Read once from the one that will be "saved" later
+	// GetMessage once from the one that will be "saved" later
 	// (goroutine switches from this goroutine to next *right* after read)
-	latererBytesRead, _ := readerLaterer.Read()
+	latererBytesRead, _ := readerLaterer.GetMessage()
 
-	// Read from the other goroutine, consume everything in logs and force a munumap
-	bytes, e := reader.Read()
+	// GetMessage from the other goroutine, consume everything in logs and force a munumap
+	bytes, e := reader.GetMessage()
 	log.Printf("string: %v", string(bytes))
 	for {
-		bytesTemp, e := reader.Read()
+		bytesTemp, e := reader.GetMessage()
 		if bytesTemp == nil || e != nil {
 			break
 		}
@@ -44,8 +44,8 @@ func TestReading(t *testing.T) {
 		writer.Write([]byte("goodbye"))
 	}
 
-	// Read again from other gorotuine. The original bytes would've been saved by now, but latererBytesRead isn't.
-	bytes2, e := reader.Read()
+	// GetMessage again from other gorotuine. The original bytes would've been saved by now, but latererBytesRead isn't.
+	bytes2, e := reader.GetMessage()
 	log.Printf("string2: %v", string(bytes2))
 	log.Printf("string: %v", string(bytes))
 	// Expected they wouldn't be equal.
