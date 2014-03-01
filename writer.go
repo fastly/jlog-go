@@ -30,13 +30,14 @@ func (log Writer) Open() error {
 	return assertGTEZero(C.jlog_ctx_open_writer(log.ctx), "Open", log.Jlog)
 }
 
-func (log Writer) Write(message []byte) error {
+func (log Writer) SendMessage(message []byte) (int, error) {
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&message))
 	data := unsafe.Pointer(header.Data)
-	return assertGTEZero(C.jlog_ctx_write(log.ctx, data, C.size_t(len(message))), "Write", log.Jlog)
+	err := assertGTEZero(C.jlog_ctx_write(log.ctx, data, C.size_t(len(message))), "Write", log.Jlog)
+	return len(message), err
 }
 
-func (log Writer) DatedWrite(message []byte, when time.Time) (int, error) {
+func (log Writer) DateMessage(message []byte, when time.Time) (int, error) {
 	var tv C.struct_timeval
 	duration := when.Sub(time.Now())
 	tv.tv_sec = C.__time_t(duration.Seconds())
