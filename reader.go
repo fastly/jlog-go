@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sync"
 	"unsafe"
+
+	"github.com/twmb/message"
 )
 
 /*
@@ -35,10 +37,10 @@ func (log Reader) Open(subscriber string) error {
 	return assertGTEZero(C.jlog_ctx_open_reader(log.ctx, s), "Open", log.Jlog)
 }
 
-// Read reads the next message from the JLog queue.
-func (log Reader) Read() ([]byte, error) {
+// GetMessage reads the next message from the JLog queue.
+func (log Reader) GetMessage() ([]byte, error) {
 	var currentId C.jlog_id
-	var message C.jlog_message
+	var jmsg C.jlog_message
 
 	/* if start is unset, we need to read the interval (again) */
 	if log.readErrd || log.start == zeroId {
@@ -62,17 +64,17 @@ func (log Reader) Read() ([]byte, error) {
 		if log.prev == log.end {
 			log.start = zeroId
 			log.end = zeroId
-			return nil, nil
+			return nil, message.EOMs
 		}
 		C.jlog_ctx_advance_id(log.ctx, &log.last, &currentId, &log.end)
 		if log.last == currentId {
 			log.start = zeroId
 			log.end = zeroId
-			return nil, nil
+			return nil, message.EOMs
 		}
 	}
 	mutex.Lock()
-	e := C.jlog_ctx_read_message(log.ctx, &currentId, &message)
+	e := C.jlog_ctx_read_message(log.ctx, &currentId, &jmsg)
 	if e != 0 {
 		log.readErrd = true
 		mutex.Unlock()
@@ -80,9 +82,9 @@ func (log Reader) Read() ([]byte, error) {
 	}
 	var s []byte
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&s))
-	header.Data = uintptr(message.mess)
-	header.Len = int(message.mess_len)
-	header.Cap = int(message.mess_len)
+	header.Data = uintptr(jmsg.mess)
+	header.Len = int(jmsg.mess_len)
+	header.Cap = int(jmsg.mess_len)
 	copied := make([]byte, len(s))
 	copy(copied, s)
 	mutex.Unlock()
@@ -99,7 +101,14 @@ func (log Reader) Read() ([]byte, error) {
 		log.prev = log.last
 		log.last = currentId
 	}
+	if len(copied) == 0 {
+		return nil, message.EOMs
+	}
 	return copied, nil
+}
+
+func (log Reader) AckMsgGot() error {
+	return log.Checkpoint()
 }
 
 // Rewind rewinds the jlog to the previous transaction id (when in an uncommitted state).
