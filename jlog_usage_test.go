@@ -1,11 +1,13 @@
 package jlog_test
 
 import (
-	"github.com/fastly/jlog"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/fastly/jlog-go"
+	"github.com/twmb/message"
 )
 
 var payload string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -15,7 +17,7 @@ var pathname string
 func initialize(t *testing.T) {
 	f, e := ioutil.TempFile("/tmp", "gojlogtest.")
 	if e != nil {
-		t.Errorf("unable to create tempfile")
+		t.Errorf("unable to create tempfile, delete old concurrent directories")
 	}
 	pathname = f.Name()
 	log.Println(pathname)
@@ -72,7 +74,7 @@ func usageWritePayloads(cnt int, t *testing.T) {
 	log.Printf("writing out %d %d byte payloads", cnt, len(payload))
 	bytePayload := []byte(payload)
 	for i := 0; i < cnt; i++ {
-		ctx.Write(bytePayload)
+		ctx.SendMessage(bytePayload)
 	}
 	log.Printf("written")
 }
@@ -86,11 +88,11 @@ func usageReadCheck(subscriber string, expect int, sizeup bool, t *testing.T) {
 	}
 	start := ctx.RawSize()
 	for {
-		b, e := ctx.Read()
+		b, e := ctx.GetMessage()
 		if cnt > pcnt {
 			log.Printf("cnt > pcnt, just read %v", string(b))
 		}
-		if e != nil {
+		if e != nil && e != message.EOMs {
 			t.Errorf("Unable to read message, error %v", ctx.ErrString())
 			break
 		}

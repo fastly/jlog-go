@@ -1,15 +1,17 @@
 package jlog_test
 
 import (
-	"github.com/fastly/jlog"
+	"github.com/fastly/jlog-go"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"testing"
 )
 
 func TestConcurrent(t *testing.T) {
 	initialize(t)
+	runtime.GOMAXPROCS(8)
 	e := os.Mkdir("./concurrent", 0777)
 	if e != nil {
 		t.Errorf("unable to make temporary directory")
@@ -63,7 +65,7 @@ func TestConcurrent(t *testing.T) {
 		t.Errorf("cannot open for writing, %v", writer.ErrString())
 	}
 	for i := 0; i < writeCount; i++ {
-		writer.Write([]byte(strconv.Itoa(i)))
+		writer.SendMessage([]byte(strconv.Itoa(i)))
 	}
 	log.Printf("done writing for concurrent test")
 	for _, c := range sendDoneChans {
@@ -85,7 +87,7 @@ out:
 		case <-sendDoneChan:
 			break out
 		default:
-			bytes, e := reader.Read()
+			bytes, e := reader.GetMessage()
 			if e != nil {
 				break out
 			}
@@ -99,7 +101,7 @@ out:
 		}
 	}
 	for {
-		bytes, e := reader.Read()
+		bytes, e := reader.GetMessage()
 		if bytes == nil || e != nil {
 			break
 		}
