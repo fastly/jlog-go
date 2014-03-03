@@ -18,7 +18,7 @@ func TestReading(t *testing.T) {
 		t.Errorf("cannot open for writing, %v", writer.ErrString())
 	}
 	for i := 0; i < writeCount; i++ {
-		writer.Write([]byte("hello"))
+		writer.SendMessage([]byte("hello"))
 	}
 
 	// Open both readers. They will both point to the start
@@ -41,7 +41,7 @@ func TestReading(t *testing.T) {
 		}
 	}
 	for i := 0; i < writeCount; i++ {
-		writer.Write([]byte("goodbye"))
+		writer.SendMessage([]byte("goodbye"))
 	}
 
 	// GetMessage again from other gorotuine. The original bytes would've been saved by now, but latererBytesRead isn't.

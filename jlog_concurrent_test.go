@@ -65,7 +65,7 @@ func TestConcurrent(t *testing.T) {
 		t.Errorf("cannot open for writing, %v", writer.ErrString())
 	}
 	for i := 0; i < writeCount; i++ {
-		writer.Write([]byte(strconv.Itoa(i)))
+		writer.SendMessage([]byte(strconv.Itoa(i)))
 	}
 	log.Printf("done writing for concurrent test")
 	for _, c := range sendDoneChans {

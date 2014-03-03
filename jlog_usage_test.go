@@ -17,7 +17,7 @@ var pathname string
 func initialize(t *testing.T) {
 	f, e := ioutil.TempFile("/tmp", "gojlogtest.")
 	if e != nil {
-		t.Errorf("unable to create tempfile")
+		t.Errorf("unable to create tempfile, delete old concurrent directories")
 	}
 	pathname = f.Name()
 	log.Println(pathname)
@@ -74,7 +74,7 @@ func usageWritePayloads(cnt int, t *testing.T) {
 	log.Printf("writing out %d %d byte payloads", cnt, len(payload))
 	bytePayload := []byte(payload)
 	for i := 0; i < cnt; i++ {
-		ctx.Write(bytePayload)
+		ctx.SendMessage(bytePayload)
 	}
 	log.Printf("written")
 }
