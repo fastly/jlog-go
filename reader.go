@@ -49,7 +49,7 @@ func (log Reader) GetMessage() ([]byte, error) {
 		if count == 0 || count == -1 && log.Err() == ERR_FILE_OPEN {
 			log.start = zeroId
 			log.end = zeroId
-			return nil, assertGTEZero(count, "Read", log.Jlog)
+			return nil, message.EOMs
 		}
 		if count == -1 {
 			return nil, assertGTEZero(count, "Read", log.Jlog)
