@@ -12,6 +12,29 @@ type JReader struct {
 	subscriber string
 }
 
+// ForceNewReader opens the jlog at the given path, attaches the given
+// subscriber for reading and returns the opened jlog. If the subscriber
+// already exists, it will open the jlog with that subscriber.
+func ForceNewReader(path, subscriber string) (*JReader, error) {
+	log, err := jlog.NewReader(path, nil)
+	if err != nil {
+		return nil, err
+	}
+	reader := &JReader{Reader: log}
+
+	err = log.AddSubscriber(subscriber, jlog.END)
+	if err != nil && err != jlog.Err() != jlog.ERR_SUBSCRIBER_EXISTS {
+		return nil, err
+	}
+	err = log.Open(subscriber)
+	if err != nil {
+		jreader.Close()
+		return nil, err
+	}
+	jreader.subscriber = subscriber
+	return jreader, nil
+}
+
 // NewReader opens the jlog at the given path, attaches the given subscriber
 // for reading and returns the opened jlog.
 func NewReader(path, subscriber string) (*JReader, error) {
