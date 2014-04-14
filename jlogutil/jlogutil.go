@@ -20,10 +20,10 @@ func ForceNewReader(path, subscriber string) (*JReader, error) {
 	if err != nil {
 		return nil, err
 	}
-	reader := &JReader{Reader: log}
+	jreader := &JReader{Reader: log}
 
 	err = log.AddSubscriber(subscriber, jlog.END)
-	if err != nil && err != jlog.Err() != jlog.ERR_SUBSCRIBER_EXISTS {
+	if err != nil && log.Err() != jlog.ERR_SUBSCRIBER_EXISTS {
 		return nil, err
 	}
 	err = log.Open(subscriber)
