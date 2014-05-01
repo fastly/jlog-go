@@ -40,8 +40,8 @@ func (log Writer) SendMessage(message []byte) (int, error) {
 func (log Writer) DateMessage(message []byte, when time.Time) (int, error) {
 	var tv C.struct_timeval
 	duration := when.Sub(time.Now())
-	tv.tv_sec = C.__time_t(duration.Seconds())
-	tv.tv_usec = C.__suseconds_t(duration.Nanoseconds() / 1000)
+	tv.tv_sec = float64ToTimeT(duration.Seconds())
+	tv.tv_usec = int64ToSusecondsT(duration.Nanoseconds() / 1000)
 
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&message))
 	data := unsafe.Pointer(header.Data)
