@@ -37,6 +37,11 @@ func (log Reader) Open(subscriber string) error {
 	return assertGTEZero(C.jlog_ctx_open_reader(log.ctx, s), "Open", log.Jlog)
 }
 
+func (log Reader) NumAvailable() (int, error) {
+	count := C.jlog_ctx_read_interval(log.ctx, &log.start, &log.end)
+	return count, assertGTEZero(count, "NumAvailable", log.Jlog)
+}
+
 // GetMessage reads the next message from the JLog queue.
 func (log Reader) GetMessage() ([]byte, error) {
 	var currentId C.jlog_id
