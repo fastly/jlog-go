@@ -39,6 +39,10 @@ func (log Reader) Open(subscriber string) error {
 
 func (log Reader) NumAvailable() (int, error) {
 	count := C.jlog_ctx_read_interval(log.ctx, &log.start, &log.end)
+	if count == 0 || count == -1 && log.Err() == ERR_FILE_OPEN {
+		log.start = zeroId
+		log.end = zeroId
+	}
 	return int(count), assertGTEZero(count, "NumAvailable", log.Jlog)
 }
 
